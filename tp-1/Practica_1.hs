@@ -69,14 +69,17 @@ empiezaConM Miercoles = True
 empiezaConM unDia = False
 --2.c
 vieneDespues :: DiaDeSemana -> DiaDeSemana -> Bool
-vieneDespues Lunes Martes = True
-vieneDespues Martes Miercoles = True
-vieneDespues Miercoles Jueves = True
-vieneDespues Jueves Viernes = True
-vieneDespues Viernes Sabado = True
-vieneDespues Sabado Domingo = True
-vieneDespues Domingo Lunes = True
-vieneDespues unDia1 unDia2 = False
+vieneDespues d1 d2 = diasANumeros d1 > diasANumeros d2 
+{-Suponiendo que, por ejemplo, lunes no viene despues de ningun otro dia de la semana, nisiquiera del domingo. Y ademas no son solamente vieneDespues de dias consecutivos es decir,
+  que miercoles no solamente viene despues del martes sino que del lunes tambien -}
+diasANumeros :: DiaDeSemana -> Int
+diasANumeros Lunes = 1
+diasANumeros Martes = 2
+diasANumeros Miercoles = 3
+diasANumeros Jueves = 4
+diasANumeros Viernes = 5 
+diasANumeros Sabado = 6
+diasANumeros Domingo = 7
 --2.d
 estaEnElMedio :: DiaDeSemana -> Bool
 estaEnElMedio Lunes = False
@@ -107,7 +110,7 @@ yTambien True True = True
 yTambien _ _ = False
 --3.d
 oBien :: Bool -> Bool -> Bool
-oBien False False = False
+oBien False b = b
 oBien _ _ = True
 
 --4. REGISTROS
@@ -128,7 +131,7 @@ esMayorQueLaOtra :: Persona -> Persona -> Bool
 esMayorQueLaOtra p1 p2 = edad p1 > edad p2
 laQueEsMayor :: Persona -> Persona -> Persona
 laQueEsMayor p1 p2 = 
-    if edad p1 > edad p2
+    if esMayorQueLaOtra p1 p2
         then p1
         else p2
 {- Variables de prueba
