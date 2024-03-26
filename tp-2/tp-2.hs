@@ -151,3 +151,89 @@ eze = P "Ezequiel" 29
 data TipoDePokemon = Agua | Fuego | Planta
 data Pokemon = ConsPokemon TipoDePokemon Int
 data Entrenador = ConsEntrenador String [Pokemon]
+cantPokemon :: Entrenador -> Int
+cantPokemon (ConsEntrenador n poke) = longitud poke
+cantPokemonDe :: TipoDePokemon -> Entrenador -> Int
+cantPokemonDe tp (ConsEntrenador _ poke) = cantPokemonDeTipoEn tp poke
+cantPokemonDeTipoEn :: TipoDePokemon -> [Pokemon] -> Int
+cantPokemonDeTipoEn _ [] = 0
+cantPokemonDeTipoEn tp (p:ps) = 
+                        if mismoTipoDePokemon tp (tipoDePokemon p)
+                            then 1 + cantPokemonDeTipoEn tp ps
+                            else cantPokemonDeTipoEn tp ps
+esMaestroPokemon :: Entrenador -> Bool
+esMaestroPokemon (ConsEntrenador _ poke) = tienePokemonesDeTodosLosTipos poke
+tienePokemonesDeTodosLosTipos :: [Pokemon] -> Bool
+-- recibe una lista de pokemones e indica si esta misma posee pokemones de los tipos Agua, Fuego y Planta.
+tienePokemonesDeTodosLosTipos [] = False
+tienePokemonesDeTodosLosTipos poke =   (cantPokemonDeTipoEn Fuego poke > 0)  
+                                    && (cantPokemonDeTipoEn Agua poke > 0)
+                                    && (cantPokemonDeTipoEn Planta poke > 0)
+{- cantPokemonDeTipoEn Fuego poke > 0, cantPokemonDeTipoEn Agua poke > 0, cantPokemonDeTipoEn Planta poke > 0 
+        Podrian ser subtareas que indiquen si el entrenador o la lista de pokemones tiene al menos un pokemon de determiando tipo
+-}
+cuantosDeTipoLeGananATodosLosDe :: TipoDePokemon -> Entrenador -> Entrenador -> Int
+cuantosDeTipoLeGananATodosLosDe tp e1 e2 = cantidadDePokemonesGanadoresDeTipo tp (pokemonesDeEntrenador e1) (pokemonesDeEntrenador e2)
+{-
+La implementacion de cuantosDeTipoLeGananATodosLosDe esta centrada en peleas 1 a 1 entre los pokemones de los entrenadores,
+es decir, el primer pokemon que esta en la lista del entrenador1 peleara con el primer pokemon de la lista del entrenador2
+siguiendo esas reglas de pelea en esta implementacion se quiere que al pasarle un tipo de pokemon te indique con un numero
+la cantidad de pokemones de ese tipo que le ganarian a su contricante, esto quiere decir, por ejemplo : 
+que si el primer pokemon del entrenador 1, puede vencer al ultimo pokemon del entrenador 2 no se contemplara en el resultado final.
+-}
+cantidadDePokemonesGanadoresDeTipo :: TipoDePokemon -> [Pokemon] -> [Pokemon] -> Int
+-- recibe un tipo de pokemon y dos listas de pokemones y retorna la cantidad de pokemones de la primera lista que le ganarian a los pokemones de la segunda, siguiendo como regla peleas 1 a 1.
+cantidadDePokemonesGanadoresDeTipo tp _ [] = 0
+cantidadDePokemonesGanadoresDeTipo tp [] _ = 0
+cantidadDePokemonesGanadoresDeTipo tp (x:xs) (k:ks) = if mismoTipoDePokemon tp (tipoDePokemon x) && superaA x k 
+                                                        then 1 + cantidadDePokemonesGanadoresDeTipo tp xs ks 
+                                                        else cantidadDePokemonesGanadoresDeTipo tp xs ks
+pokemonesDeEntrenador :: Entrenador -> [Pokemon]
+pokemonesDeEntrenador (ConsEntrenador _ poke) = poke
+-- funciones del tp 1 
+mismoTipoDePokemon :: TipoDePokemon -> TipoDePokemon -> Bool
+-- recibe dos tipos de pokemon e indica si son del mismo tipo.
+mismoTipoDePokemon Agua Agua = True
+mismoTipoDePokemon Planta Planta = True
+mismoTipoDePokemon Fuego Fuego =True
+mismoTipoDePokemon _ _ = False
+tipoDePokemon :: Pokemon -> TipoDePokemon
+-- retorna el tipo de pokemon de un pokemon
+tipoDePokemon (ConsPokemon t _) = t
+esTipoAgua :: TipoDePokemon -> Bool
+-- indica si el tipo de pokemon es Agua
+esTipoAgua Agua = True
+esTipoAgua _ = False
+esTipoFuego :: TipoDePokemon -> Bool
+-- indica si el tipo de pokemon es Fuego
+esTipoFuego Fuego = True
+esTipoFuego _ = False
+esTipoPlanta :: TipoDePokemon -> Bool
+-- indica si el tipo de pokemon es Planta
+esTipoPlanta Planta = True
+esTipoPlanta _ = False
+esPokemonTipoAgua :: Pokemon -> Bool
+-- indica si el pokemon es de tipo Agua
+esPokemonTipoAgua poke = esTipoAgua (tipoDePokemon poke)
+esPokemonTipoFuego :: Pokemon -> Bool
+-- indica si el pokemon es de tipo Fuego
+esPokemonTipoFuego poke = esTipoFuego (tipoDePokemon poke)
+esPokemonTipoPlanta :: Pokemon -> Bool
+-- indica si el pokemon es de tipo Planta
+esPokemonTipoPlanta poke = esTipoPlanta (tipoDePokemon poke)
+superaA :: Pokemon -> Pokemon -> Bool
+superaA poke1 poke2 = (esPokemonTipoAgua poke1) && (esPokemonTipoFuego poke2)
+                    || (esPokemonTipoFuego poke1) && (esPokemonTipoPlanta poke2)
+                    || (esPokemonTipoPlanta poke1) && (esPokemonTipoAgua poke2)
+-- variables de prueba
+nicolasEntrenador = ConsEntrenador "nico" [bulbasaur, charmander, pokeTipoAgua]
+alguienEntrenador = ConsEntrenador "nico" [charmander, pokeTipoAgua, bulbasaur]
+bulbasaur = ConsPokemon Planta 40
+charmander = ConsPokemon Fuego 90
+pokeTipoAgua = ConsPokemon Agua 50
+
+--3. Empleados IT
+data Seniority = Junior | SemiSenior | Senior
+data Proyecto = ConsProyecto String
+data Rol = Developer Seniority Proyecto | Management Seniority Proyecto
+data Empresa = ConsEmpresa [Rol]
