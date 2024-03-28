@@ -72,6 +72,7 @@ vieneDespues :: DiaDeSemana -> DiaDeSemana -> Bool
 vieneDespues d1 d2 = diasANumeros d1 > diasANumeros d2 
 {-Suponiendo que, por ejemplo, lunes no viene despues de ningun otro dia de la semana, nisiquiera del domingo. Y ademas no son solamente vieneDespues de dias consecutivos es decir,
   que miercoles no solamente viene despues del martes sino que del lunes tambien -}
+
 diasANumeros :: DiaDeSemana -> Int
 diasANumeros Lunes = 1
 diasANumeros Martes = 2
@@ -85,28 +86,17 @@ estaEnElMedio :: DiaDeSemana -> Bool
 estaEnElMedio Lunes = False
 estaEnElMedio Domingo = False
 estaEnElMedio _ = True
-{- otra opcion
-    noEsLunes :: DiaDeSemana -> Bool
-    noEsLunes Lunes = False
-    noEsLunes _ = True 
-    noEsDomingo :: DiaDeSemana -> Bool
-    noEsDomingo Domingo = False
-    noEsDomingo _ = True
-    estaEnElMedio :: DiaDeSemana -> Bool
-    estaEnElMedio d = (noEsLunes d) && (noEsDomingo d)
--}
-
 --3.a
 negar :: Bool -> Bool
 negar True = False
 negar False = True
 --3.b
 implica :: Bool -> Bool -> Bool
-implica True False = False
+implica True b = b
 implica _ _ = True
 --3.c
 yTambien :: Bool -> Bool -> Bool
-yTambien True True = True
+yTambien True b = b
 yTambien _ _ = False
 --3.d
 oBien :: Bool -> Bool -> Bool
@@ -121,14 +111,19 @@ data Persona = P String Int
     
 nombre :: Persona -> String 
 nombre (P n e) = n
+
 edad :: Persona -> Int
 edad (P n e) = e
+
 crecer :: Persona -> Persona
 crecer (P n e) = P n (e+1)
+
 cambioDeNombre :: String -> Persona -> Persona
 cambioDeNombre nNuevo (P n e) = P nNuevo e
+
 esMayorQueLaOtra :: Persona -> Persona -> Bool
 esMayorQueLaOtra p1 p2 = edad p1 > edad p2
+
 laQueEsMayor :: Persona -> Persona -> Persona
 laQueEsMayor p1 p2 = 
     if esMayorQueLaOtra p1 p2
@@ -150,48 +145,61 @@ data Entrenador = E String Pokemon Pokemon
 
 tipoDePokemon :: Pokemon -> TipoDePokemon
 tipoDePokemon (Poke t _) = t
+
 esTipoAgua :: TipoDePokemon -> Bool
 esTipoAgua Agua = True
 esTipoAgua _ = False
+
 esTipoFuego :: TipoDePokemon -> Bool
 esTipoFuego Fuego = True
 esTipoFuego _ = False
+
 esTipoPlanta :: TipoDePokemon -> Bool
 esTipoPlanta Planta = True
 esTipoPlanta _ = False
+
 esPokemonTipoAgua :: Pokemon -> Bool
 esPokemonTipoAgua poke = esTipoAgua (tipoDePokemon poke)
+
 esPokemonTipoFuego :: Pokemon -> Bool
 esPokemonTipoFuego poke = esTipoFuego (tipoDePokemon poke)
+
 esPokemonTipoPlanta :: Pokemon -> Bool
 esPokemonTipoPlanta poke = esTipoPlanta (tipoDePokemon poke)
+
 superaA :: Pokemon -> Pokemon -> Bool
-superaA poke1 poke2 = (esPokemonTipoAgua poke1) && (esPokemonTipoFuego poke2)
-                    || (esPokemonTipoFuego poke1) && (esPokemonTipoPlanta poke2)
-                    || (esPokemonTipoPlanta poke1) && (esPokemonTipoAgua poke2)
+superaA (Poke Agua _) (Poke Fuego _)   = True
+superaA (Poke Fuego _) (Poke Planta _) = True
+superaA (Poke Planta _) (Poke Agua _)  = True
+superaA      _               _         = False
+
 cantidadDePokemonDe :: TipoDePokemon -> Entrenador -> Int
-cantidadDePokemonDe tp (E _ poke1 poke2) =
-                                    if mismoTipoDePokemon (tipoDePokemon poke1) tp && mismoTipoDePokemon (tipoDePokemon poke2) tp
-                                        then 2
-                                        else if mismoTipoDePokemon (tipoDePokemon poke1) tp || mismoTipoDePokemon (tipoDePokemon poke2) tp
-                                            then 1
-                                            else 0
+cantidadDePokemonDe tp (E _ poke1 poke2) = unoSiEsMismoTipoDePokemonCeroSino (tipoDePokemon poke1) tp + unoSiEsMismoTipoDePokemonCeroSino (tipoDePokemon poke2) tp
+
+unoSiEsMismoTipoDePokemonCeroSino :: TipoDePokemon -> TipoDePokemon -> Int
+unoSiEsMismoTipoDePokemonCeroSino Agua Agua = 1
+unoSiEsMismoTipoDePokemonCeroSino Fuego Fuego = 1
+unoSiEsMismoTipoDePokemonCeroSino Planta Planta = 1
+unoSiEsMismoTipoDePokemonCeroSino _ _ = 0
+
 mismoTipoDePokemon :: TipoDePokemon -> TipoDePokemon -> Bool
 mismoTipoDePokemon Agua Agua = True
 mismoTipoDePokemon Planta Planta = True
 mismoTipoDePokemon Fuego Fuego =True
 mismoTipoDePokemon _ _ = False
+
 listaDePokemonesDe :: Entrenador -> [Pokemon]
 listaDePokemonesDe (E _ poke1 poke2) = [poke1, poke2]
+
 juntarPokemon :: (Entrenador, Entrenador) -> [Pokemon]
 juntarPokemon (e1, e2) = listaDePokemonesDe e1 ++ listaDePokemonesDe e2
-{- Variables de prueba
-    pokemonAgua = Poke Agua 10
-    pokemonFuego = Poke Fuego 10
-    pokemonPlanta = Poke Planta 20
-    entrenadorNico = E "Nicolas" pokemonAgua pokemonAgua
-    entrenadorJuan = E "Juan" pokemonPlanta pokemonPlanta
--}
+
+-- Variables de prueba
+pokemonAgua = Poke Agua 10
+pokemonFuego = Poke Fuego 10
+pokemonPlanta = Poke Planta 20
+entrenadorNico = E "Nicolas" pokemonAgua pokemonAgua
+entrenadorJuan = E "Juan" pokemonPlanta pokemonPlanta
 
 --5. FUNCIONES POLIMORFICAS
 --1.a
