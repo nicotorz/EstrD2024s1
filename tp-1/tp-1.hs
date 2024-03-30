@@ -146,32 +146,14 @@ data Entrenador = E String Pokemon Pokemon
 tipoDePokemon :: Pokemon -> TipoDePokemon
 tipoDePokemon (Poke t _) = t
 
-esTipoAgua :: TipoDePokemon -> Bool
-esTipoAgua Agua = True
-esTipoAgua _ = False
-
-esTipoFuego :: TipoDePokemon -> Bool
-esTipoFuego Fuego = True
-esTipoFuego _ = False
-
-esTipoPlanta :: TipoDePokemon -> Bool
-esTipoPlanta Planta = True
-esTipoPlanta _ = False
-
-esPokemonTipoAgua :: Pokemon -> Bool
-esPokemonTipoAgua poke = esTipoAgua (tipoDePokemon poke)
-
-esPokemonTipoFuego :: Pokemon -> Bool
-esPokemonTipoFuego poke = esTipoFuego (tipoDePokemon poke)
-
-esPokemonTipoPlanta :: Pokemon -> Bool
-esPokemonTipoPlanta poke = esTipoPlanta (tipoDePokemon poke)
-
 superaA :: Pokemon -> Pokemon -> Bool
-superaA (Poke Agua _) (Poke Fuego _)   = True
-superaA (Poke Fuego _) (Poke Planta _) = True
-superaA (Poke Planta _) (Poke Agua _)  = True
-superaA      _               _         = False
+superaA poke1 poke2 = superaTipo (tipoDePokemon poke1) (tipoDePokemon poke2)
+
+superaTipo :: TipoDePokemon -> TipoDePokemon -> Bool
+superaTipo Agua Fuego   = True
+superaTipo Fuego Planta = True
+superaTipo Planta Agua  = True
+superaTipo _ _          = False
 
 cantidadDePokemonDe :: TipoDePokemon -> Entrenador -> Int
 cantidadDePokemonDe tp (E _ poke1 poke2) = unoSiEsMismoTipoDePokemonCeroSino (tipoDePokemon poke1) tp + unoSiEsMismoTipoDePokemonCeroSino (tipoDePokemon poke2) tp

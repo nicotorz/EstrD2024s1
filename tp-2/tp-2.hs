@@ -176,10 +176,10 @@ tienePokemonesDeTodosLosTipos poke =   (cantPokemonDeTipoEn Fuego poke > 0)
 {- cantPokemonDeTipoEn Fuego poke > 0, cantPokemonDeTipoEn Agua poke > 0, cantPokemonDeTipoEn Planta poke > 0 
         Podrian ser subtareas que indiquen si el entrenador o la lista de pokemones tiene al menos un pokemon de determiando tipo
 -}
-cuantosDeTipoLeGananATodosLosDe :: TipoDePokemon -> Entrenador -> Entrenador -> Int
-cuantosDeTipoLeGananATodosLosDe tp e1 e2 = cantidadDePokemonesGanadoresDeTipo tp (pokemonesDeEntrenador e1) (pokemonesDeEntrenador e2)
+cuantosDeTipo_De_LeGananATodosLosDe_ :: TipoDePokemon -> Entrenador -> Entrenador -> Int
+cuantosDeTipo_De_LeGananATodosLosDe_ tp e1 e2 = cantidadDePokemonesGanadoresDeTipo tp (pokemonesDeEntrenador e1) (pokemonesDeEntrenador e2)
 {-
-La implementacion de cuantosDeTipoLeGananATodosLosDe esta centrada en peleas 1 a 1 entre los pokemones de los entrenadores,
+La implementacion de cuantosDeTipo_De_LeGananATodosLosDe_ esta centrada en peleas 1 a 1 entre los pokemones de los entrenadores,
 es decir, el primer pokemon que esta en la lista del entrenador1 peleara con el primer pokemon de la lista del entrenador2
 siguiendo esas reglas de pelea en esta implementacion se quiere que al pasarle un tipo de pokemon te indique con un numero
 la cantidad de pokemones de ese tipo que le ganarian a su contricante, esto quiere decir, por ejemplo : 
@@ -264,9 +264,9 @@ desarrolloDeApps = ConsProyecto "Desarrollo de Aplicaciones"
 analistaDeDatos = ConsProyecto "Analista de Datos"
 desarrolloDeApps2 = ConsProyecto "Desarrollo de Aplicaciones"
 --Ejercicios
-proyecto :: Empresa -> [Proyecto]
-proyecto (ConsEmpresa []) = [] 
-proyecto (ConsEmpresa rs) = proyectoDeCadaRolDeLaEmpresa rs 
+proyectos :: Empresa -> [Proyecto]
+proyectos (ConsEmpresa []) = [] 
+proyectos (ConsEmpresa rs) = proyectoDeCadaRolDeLaEmpresa rs 
 
 proyectoDeRol :: Rol -> Proyecto
 proyectoDeRol (Developer _ p)  = p
@@ -342,7 +342,7 @@ perteneceAlmenosAUn r (p:ps) = if perteneceA r p
 
 asignadosPorProyecto :: Empresa -> [(Proyecto,Int)]
 -- Devuelve una lista de pares que representa a los proyectos (sin repetir) junto con su cantidad de personas involucradas.
-asignadosPorProyecto e = listaDeTuplasDeEmpleadoYSuProyecto (proyecto e) (rolesDeLaEmpresa e)
+asignadosPorProyecto e = listaDeTuplasDeEmpleadoYSuProyecto (proyectos e) (rolesDeLaEmpresa e)
 
 rolesDeLaEmpresa :: Empresa -> [Rol]
 rolesDeLaEmpresa (ConsEmpresa rs) = rs
