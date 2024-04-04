@@ -98,13 +98,15 @@ repetir n a = a : repetir (n-1) a
 --Dado un número n y un elemento e devuelve una lista en la que el elemento e repite n veces.
 --2.4
 losPrimeros :: Int -> [a] -> [a]
-losPrimeros 0 _ = []
+losPrimeros 0 _      = []
+losPrimeros _ []     = []
 losPrimeros n (x:xs) = x : losPrimeros (n-1) xs 
 --Dados un número n y una lista xs, devuelve una lista con los n primeros elementos de xs. Si la lista es vacía, devuelve una lista vacía.
 --2.5
 sinLosPrimeros :: Int -> [a] -> [a]
     --PRECOND: El numero debe ser mayor o igual a la longitud de la lista.
-sinLosPrimeros 0 a = a
+sinLosPrimeros _ []     = []
+sinLosPrimeros 0 a      = a
 sinLosPrimeros n (x:xs) = sinLosPrimeros (n-1) xs
 --Dados un número n y una lista xs, devuelve una lista sin los primeros n elementos de lista recibida. Si n es cero, devuelve la lista completa.
 
@@ -177,21 +179,26 @@ tienePokemonesDeTodosLosTipos poke =   (cantPokemonDeTipoEn Fuego poke > 0)
         Podrian ser subtareas que indiquen si el entrenador o la lista de pokemones tiene al menos un pokemon de determiando tipo
 -}
 cuantosDeTipo_De_LeGananATodosLosDe_ :: TipoDePokemon -> Entrenador -> Entrenador -> Int
-cuantosDeTipo_De_LeGananATodosLosDe_ tp e1 e2 = cantidadDePokemonesGanadoresDeTipo tp (pokemonesDeEntrenador e1) (pokemonesDeEntrenador e2)
-{-
-La implementacion de cuantosDeTipo_De_LeGananATodosLosDe_ esta centrada en peleas 1 a 1 entre los pokemones de los entrenadores,
-es decir, el primer pokemon que esta en la lista del entrenador1 peleara con el primer pokemon de la lista del entrenador2
-siguiendo esas reglas de pelea en esta implementacion se quiere que al pasarle un tipo de pokemon te indique con un numero
-la cantidad de pokemones de ese tipo que le ganarian a su contricante, esto quiere decir, por ejemplo : 
-que si el primer pokemon del entrenador 1, puede vencer al ultimo pokemon del entrenador 2 no se contemplara en el resultado final.
--}
-cantidadDePokemonesGanadoresDeTipo :: TipoDePokemon -> [Pokemon] -> [Pokemon] -> Int
--- recibe un tipo de pokemon y dos listas de pokemones y retorna la cantidad de pokemones de la primera lista que le ganarian a los pokemones de la segunda, siguiendo como regla peleas 1 a 1.
-cantidadDePokemonesGanadoresDeTipo tp _ [] = 0
-cantidadDePokemonesGanadoresDeTipo tp [] _ = 0
-cantidadDePokemonesGanadoresDeTipo tp (x:xs) (k:ks) = if mismoTipoDePokemon tp (tipoDePokemon x) && superaA x k 
-                                                        then 1 + cantidadDePokemonesGanadoresDeTipo tp xs ks 
-                                                        else cantidadDePokemonesGanadoresDeTipo tp xs ks
+cuantosDeTipo_De_LeGananATodosLosDe_ tp e1 e2 = cantidadDePokemonesGanadores (pokemonesDeTipo (pokemonesDeEntrenador e1) tp) (pokemonesDeEntrenador e2)
+
+pokemonesDeTipo :: [Pokemon] -> TipoDePokemon -> [Pokemon]
+pokemonesDeTipo [] t     = []
+pokemonesDeTipo (p:ps) t = if mismoTipoDePokemon (tipoDePokemon p) t
+                            then p : pokemonesDeTipo ps t
+                            else pokemonesDeTipo ps t
+
+cantidadDePokemonesGanadores :: [Pokemon] -> [Pokemon] -> Int
+-- retorna la cantidad de pokemones de la primera lista de pokemones que le ganarian a todos los de la segunda lista de pokemones.
+cantidadDePokemonesGanadores _ []         = 0
+cantidadDePokemonesGanadores [] _         = 0
+cantidadDePokemonesGanadores (p1:p1s) p2s = if leGanaATodosLosPokemones p1 p2s
+                                                    then 1 + cantidadDePokemonesGanadores p1s p2s
+                                                    else cantidadDePokemonesGanadores p1s p2s
+
+leGanaATodosLosPokemones :: Pokemon -> [Pokemon] -> Bool
+-- recibe un pokemon como parametro e indica si ese pokemon supera a todos los pokemones de la lista de pokemones.
+leGanaATodosLosPokemones p1 []       = True
+leGanaATodosLosPokemones p1 (p2:p2s) = superaA p1 p2 && leGanaATodosLosPokemones p1 p2s
 
 pokemonesDeEntrenador :: Entrenador -> [Pokemon]
 pokemonesDeEntrenador (ConsEntrenador _ poke) = poke
@@ -235,13 +242,17 @@ esPokemonTipoPlanta :: Pokemon -> Bool
 esPokemonTipoPlanta poke = esTipoPlanta (tipoDePokemon poke)
 
 superaA :: Pokemon -> Pokemon -> Bool
-superaA (ConsPokemon Agua _) (ConsPokemon Fuego _)   = True
-superaA (ConsPokemon Fuego _) (ConsPokemon Planta _) = True
-superaA (ConsPokemon Planta _) (ConsPokemon Agua _)  = True
-superaA _ _                                          = False
+superaA poke1 poke2 = superaTipo (tipoDePokemon poke1) (tipoDePokemon poke2)
+
+superaTipo :: TipoDePokemon -> TipoDePokemon -> Bool
+superaTipo Agua Fuego   = True
+superaTipo Fuego Planta = True
+superaTipo Planta Agua  = True
+superaTipo _ _          = False
+
 -- variables de prueba
-nicolasEntrenador = ConsEntrenador "nico" [bulbasaur, charmander, pokeTipoAgua]
-alguienEntrenador = ConsEntrenador "nico" [charmander, pokeTipoAgua, bulbasaur]
+nicolasEntrenador = ConsEntrenador "nico" [bulbasaur, charmander, pokeTipoAgua, charmander, charmander]
+alguienEntrenador = ConsEntrenador "alguien" [bulbasaur, bulbasaur, bulbasaur]
 bulbasaur = ConsPokemon Planta 40
 charmander = ConsPokemon Fuego 90
 pokeTipoAgua = ConsPokemon Agua 50
@@ -256,13 +267,15 @@ data Rol = Developer Seniority Proyecto | Management Seniority Proyecto
 data Empresa = ConsEmpresa [Rol]
     deriving (Show, Eq)
 --Variables de Prueba
-empresa1 = ConsEmpresa [empleado1, empleado2, empleado3]
+empresa1 = ConsEmpresa [empleado1, empleado2, empleado3, empleado4, empleado5]
 empleado1 = Developer Junior desarrolloDeApps
 empleado2 = Management Senior desarrolloDeApps
 empleado3 = Developer Senior analistaDeDatos
+empleado4 = Developer Senior desarrolloDeSoftware
+empleado5 = Management SemiSenior desarrolloDeSoftware
 desarrolloDeApps = ConsProyecto "Desarrollo de Aplicaciones"
 analistaDeDatos = ConsProyecto "Analista de Datos"
-desarrolloDeApps2 = ConsProyecto "Desarrollo de Aplicaciones"
+desarrolloDeSoftware = ConsProyecto "Desarrollo de Software"
 --Ejercicios
 proyectos :: Empresa -> [Proyecto]
 proyectos (ConsEmpresa []) = [] 
@@ -294,7 +307,7 @@ desarrolladoresSeniorQuePertenecenA (r:rs) p = if esDesarrolladorSeniorYPertenec
 esDesarrolladorSeniorYPerteneceA :: Rol -> [Proyecto] -> Bool
 esDesarrolladorSeniorYPerteneceA _ [] = False
 esDesarrolladorSeniorYPerteneceA r (p:ps) = if esDesarrolladorSenior r && perteneceA r p
-                                                then True || esDesarrolladorSeniorYPerteneceA r ps
+                                                then True 
                                                 else esDesarrolladorSeniorYPerteneceA r ps
 
 perteneceA :: Rol -> Proyecto -> Bool
@@ -342,18 +355,20 @@ perteneceAlmenosAUn r (p:ps) = if perteneceA r p
 
 asignadosPorProyecto :: Empresa -> [(Proyecto,Int)]
 -- Devuelve una lista de pares que representa a los proyectos (sin repetir) junto con su cantidad de personas involucradas.
-asignadosPorProyecto e = listaDeTuplasDeEmpleadoYSuProyecto (proyectos e) (rolesDeLaEmpresa e)
+asignadosPorProyecto e = aparicionesDeProyecto (rolesDeLaEmpresa e)
 
 rolesDeLaEmpresa :: Empresa -> [Rol]
+-- Retorna los roles de una empresa.
 rolesDeLaEmpresa (ConsEmpresa rs) = rs
 
-listaDeTuplasDeEmpleadoYSuProyecto :: [Proyecto] -> [Rol] -> [(Proyecto,Int)] 
-listaDeTuplasDeEmpleadoYSuProyecto [] _        = []
-listaDeTuplasDeEmpleadoYSuProyecto _ []        = []
-listaDeTuplasDeEmpleadoYSuProyecto (p : ps) rs = (p, cantEmpleadosPorProyecto p rs) : listaDeTuplasDeEmpleadoYSuProyecto ps rs 
+aparicionesDeProyecto :: [ Rol ] -> [ (Proyecto, Int) ]
+-- Recibe una lista de roles por parametro y devuelve una lista de pares que representa a los proyectos (sin repetir) junto con su cantidad de personas involucradas.
+aparicionesDeProyecto []     = []
+aparicionesDeProyecto (r:rs) = agregarATupla r (aparicionesDeProyecto rs)
 
-cantEmpleadosPorProyecto :: Proyecto -> [Rol] -> Int
-cantEmpleadosPorProyecto _ []       = 0
-cantEmpleadosPorProyecto p (r : rs) = if perteneceA r p 
-                                        then 1 + cantEmpleadosPorProyecto p rs 
-                                        else cantEmpleadosPorProyecto p rs
+agregarATupla :: Rol -> [ (Proyecto,Int) ] -> [ (Proyecto,Int) ]
+-- Dado un rol dado y una tupla de pares que representa a los proyectos (sin repetir) junto con su cantidad de personas involucradas, retorna la misma tupla pero con una persona mas en caso de que ya exista, sino un par nuevo.
+agregarATupla r []          = ((proyectoDeRol r),1) : []
+agregarATupla r ((p,n):pns) = if (proyectoDeRol r) == p
+                          then (p,n+1) : pns
+                          else (p,n)   : agregarATupla r pns
