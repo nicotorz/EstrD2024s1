@@ -52,6 +52,8 @@ camino1 = Nada Fin
 camino2 = Cofre [Tesoro] Fin
 camino3 = Nada (Nada (Nada (Nada(Cofre [Tesoro] Fin))))
 camino4 = Cofre [Cacharro] (Nada (Nada (Cofre [Tesoro,Tesoro,Tesoro,Cacharro,Cacharro] Fin)))
+camino5 = Cofre [Cacharro,Tesoro] (Nada (Nada (Cofre [Tesoro,Tesoro,Tesoro,Cacharro,Cacharro] Fin)))
+camino6 = Nada (Cofre [Cacharro,Tesoro] (Nada (Cofre [Tesoro,Tesoro,Tesoro,Cacharro,Cacharro] Fin)))
 
 hayTesoro :: Camino -> Bool
 -- Indica si hay un cofre con un tesoro en el camino.
@@ -100,11 +102,30 @@ cantidadTesoros (obj:objs) = if esTesoro obj
                                 then 1 + cantidadTesoros objs
                                 else cantidadTesoros objs
 
---cantTesorosEntre :: Int -> Int -> Camino -> Int
+cantTesorosEntre :: Int -> Int -> Camino -> Int
 {- Dado un rango de pasos, indica la cantidad de tesoros que hay en ese rango. Por ejemplo, si el rango es 3 y 5, 
    indica la cantidad de tesoros que hay entre hacer 3 pasos y hacer 5. Están incluidos tanto 3 como 5 en el resultado.
 -}
+cantTesorosEntre x y c = cantDeTesorosDesde x (caminoDeTesorosHasta y c)
 
+caminoDeTesorosHasta :: Int -> Camino -> Camino
+caminoDeTesorosHasta 0 c              = Fin
+caminoDeTesorosHasta n Fin            = Fin
+caminoDeTesorosHasta n (Cofre objs c) = Cofre objs (caminoDeTesorosHasta (n-1) c)
+caminoDeTesorosHasta n (Nada c)       = Nada (caminoDeTesorosHasta (n-1) c)
+
+ponerFinAlCamino :: Camino -> Camino
+ponerFinAlCamino Fin            = Fin
+ponerFinAlCamino (Nada c)       = Nada Fin
+ponerFinAlCamino (Cofre objs c) = (Cofre objs Fin)
+
+cantDeTesorosDesde :: Int -> Camino -> Int
+cantDeTesorosDesde 0 c              = cantTesorosEn c
+cantDeTesorosDesde n Fin            = 0
+cantDeTesorosDesde n (Nada c)       = cantDeTesorosDesde (n-1) c
+cantDeTesorosDesde n (Cofre objs c) = if n==0
+                                        then cantTesorosEn c
+                                        else cantDeTesorosDesde (n-1) c
 -- 2. Tipos arboreos
 -- 2.1 Arboles Binarios
 

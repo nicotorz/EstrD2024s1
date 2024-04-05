@@ -370,5 +370,5 @@ agregarATupla :: Rol -> [ (Proyecto,Int) ] -> [ (Proyecto,Int) ]
 -- Dado un rol dado y una tupla de pares que representa a los proyectos (sin repetir) junto con su cantidad de personas involucradas, retorna la misma tupla pero con una persona mas en caso de que ya exista, sino un par nuevo.
 agregarATupla r []          = ((proyectoDeRol r),1) : []
 agregarATupla r ((p,n):pns) = if (proyectoDeRol r) == p
-                          then (p,n+1) : pns
-                          else (p,n)   : agregarATupla r pns
+                                then (p,n+1) : pns
+                                else (p,n)   : agregarATupla r pns
