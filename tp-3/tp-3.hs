@@ -114,11 +114,6 @@ caminoDeTesorosHasta n Fin            = Fin
 caminoDeTesorosHasta n (Cofre objs c) = Cofre objs (caminoDeTesorosHasta (n-1) c)
 caminoDeTesorosHasta n (Nada c)       = Nada (caminoDeTesorosHasta (n-1) c)
 
-ponerFinAlCamino :: Camino -> Camino
-ponerFinAlCamino Fin            = Fin
-ponerFinAlCamino (Nada c)       = Nada Fin
-ponerFinAlCamino (Cofre objs c) = (Cofre objs Fin)
-
 cantDeTesorosDesde :: Int -> Camino -> Int
 cantDeTesorosDesde 0 c              = cantTesorosEn c
 cantDeTesorosDesde n Fin            = 0
@@ -224,16 +219,68 @@ levelsOnT :: Tree a -> Int
 levelsOnT EmptyT = 0 
 levelsOnT (NodeT _ t1 t2) = 1 + max (levelsOnT t1) (levelsOnT t2) 
 
+--12.
+ramaMasLarga :: Tree a -> [a]
+-- Devuelve los elementos de la rama más larga del árbol. Si ambas ramas tienen el mismo tamaño elige la rama izquierda
+ramaMasLarga EmptyT = []
+ramaMasLarga (NodeT x t1 t2) =  if cantidadDeNodos t1 >= cantidadDeNodos t2  
+                                    then x : leaves t1 
+                                    else x : leaves t2
 
-tomarHasta :: Int -> [a] -> [a]
-tomarHasta 0 xs     = []
-tomarHasta _ []     = []
-tomarHasta n (a:as) = a : tomarHasta (n-1) as
+cantidadDeNodos :: Tree a -> Int
+-- Devuelve la cantidad de nodos que posee el arbol.
+cantidadDeNodos EmptyT = 0
+cantidadDeNodos (NodeT x t1 t2) = 1 + cantidadDeNodos t1 + cantidadDeNodos t2
 
-tomarDesde :: Int -> [a] -> [a]
-tomarDesde 0 as     = as
-tomarDesde _ []     = []
-tomarDesde n (a:as) = tomarDesde (n-1) as
+--13.
+todosLosCaminos :: Tree a -> [[a]]
+-- Dado un árbol devuelve todos los caminos, es decir, los caminos desde la raíz hasta cualquiera de los nodos.
+todosLosCaminos EmptyT = []
+todosLosCaminos (NodeT x t1 t2) = [x] : (consACada x (todosLosCaminos t1)) ++ (consACada x (todosLosCaminos t2))
 
-tomarEntre :: Int -> Int -> [a] -> [a]
-tomarEntre x y xs = tomarHasta (y-x+1) (tomarDesde x xs)
+consACada :: a -> [[a]] -> [[a]]
+consACada x [] = []
+consACada x (xs:xss) = (x:xs) : consACada x xss
+
+-- 2.2. Expresiones Aritmeticas
+
+data ExpA = Valor Int| Sum ExpA ExpA| Prod ExpA ExpA | Neg ExpA
+    deriving Show
+
+suma = Sum (Valor 0) (Valor 2)
+--1. 
+eval :: ExpA -> Int
+-- Dada una expresión aritmética devuelve el resultado evaluarla.
+eval (Valor n)        = n
+eval (Sum exp1 exp2)  = eval exp1 + eval exp2
+eval (Prod exp1 exp2) = eval exp1 * eval exp2
+eval (Neg exp)        = -(eval exp)
+--2.
+simplificar :: ExpA -> ExpA
+{-
+    Dada una expresión aritmética, la simplifica según los siguientes criterios s (descritos utilizando notación matemática convencional):
+    a) 0 + x = x + 0 = x
+    b) 0 * x = x * 0 = 0
+    c) 1 * x = x * 1 = x
+    d) - (- x) = x
+-}
+simplificar (Sum exp1 exp2)  = simplificarSum (simplificar exp1) (simplificar exp2)
+simplificar (Prod exp1 exp2) = simplificarProd (simplificar exp1) (simplificar exp2)
+simplificar (Neg exp)      = simplificarNeg (simplificar exp)
+simplificar exp            = exp
+
+simplificarSum :: ExpA -> ExpA -> ExpA
+simplificarSum (Valor 0) exp2 = exp2
+simplificarSum exp1 (Valor 0) = exp1
+simplificarSum exp1 exp2 = Sum exp1 exp2
+
+simplificarProd :: ExpA -> ExpA -> ExpA
+simplificarProd (Valor 0) _ = Valor 0
+simplificarProd _ (Valor 0) = Valor 0
+simplificarProd (Valor 1) exp2 = exp2
+simplificarProd exp1 (Valor 1) = exp1
+simplificarProd exp1 exp2 = Prod exp1 exp2
+
+simplificarNeg :: ExpA -> ExpA
+simplificarNeg (Neg exp) = exp
+simplificarNeg exp = Neg exp
