@@ -247,7 +247,13 @@ consACada x (xs:xss) = (x:xs) : consACada x xss
 data ExpA = Valor Int| Sum ExpA ExpA| Prod ExpA ExpA | Neg ExpA
     deriving Show
 
-suma = Sum (Valor 0) (Valor 2)
+suma0 = Sum (Valor 0) (Valor 2)
+suma1 = Sum (Valor 20) (Valor 2)
+prod0 = Prod (Valor 0) (Valor 10)
+prod1 = Prod (Valor 1) (Valor 10)
+prod2 = Prod (Valor 10) (Valor 10)
+neg0  = Neg (Valor (-(-100)))
+neg1  = Neg (Valor 15)
 --1. 
 eval :: ExpA -> Int
 -- Dada una expresión aritmética devuelve el resultado evaluarla.
