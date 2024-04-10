@@ -196,10 +196,9 @@ levelN :: Int -> Tree a -> [a]
 {-Dados un número n y un árbol devuelve una lista con los nodos de nivel n. El nivel de un nodo es la distancia que hay de la raíz hasta él. 
 La distancia de la raiz a sí misma es 0, y la distancia de la raiz a uno de sus hijos es 1. Nota: El primer nivel de un árbol (su raíz) es 0.
 -}
-levelN n EmptyT = []
-levelN n (NodeT a t1 t2) = if n == 0
-                            then [a]
-                            else levelN (n - 1) t1 ++ levelN (n - 1) t2
+levelN n EmptyT          = []
+levelN 0 (NodeT x _ _)   = x : []
+levelN n (NodeT x t1 t2) = levelN (n-1) t1 ++ levelN (n-1) t2
 --11.
 listPerLevel :: Tree a -> [[a]]
 -- Dado un árbol devuelve una lista de listas en la que cada elemento representa un nivel de dicho árbol.
