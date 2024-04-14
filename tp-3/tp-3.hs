@@ -34,8 +34,7 @@ sacar c1 (Bolita c2 celda) = if esMismoColor c1 c2
 ponerN :: Int -> Color -> Celda -> Celda
 -- Dado un número n, un color c, y una celda, agrega n bolitas de color c a la celda.
 ponerN 0 _ celda = celda
-ponerN n c1 (Bolita c2 celda) = ponerN (n-1) c1 (Bolita c2 (poner c1 celda))
-                               
+ponerN n c celda = ponerN (n - 1) c (poner c celda) 
 
 celda0 = Bolita Rojo (Bolita Azul (Bolita Rojo CeldaVacia))
 celda1 = Bolita Rojo CeldaVacia
@@ -83,11 +82,21 @@ pasosHastaTesoro (Nada c)       = 1 + pasosHastaTesoro c
 
 hayTesoroEn :: Int -> Camino -> Bool
 -- Indica si hay un tesoro en una cierta cantidad exacta de pasos. Por ejemplo, si el número de pasos es 5, indica si hay un tesoro en 5 pasos.
-hayTesoroEn n c = pasosHastaTesoro c == n
+hayTesoroEn 0 c              = False
+hayTesoroEn n (Fin)          = False
+hayTesoroEn n (Nada c)       = hayTesoroEn (n-1) c
+hayTesoroEn n (Cofre objs c) = if tieneTesoro objs && n==1
+                                then True 
+                                else False || hayTesoroEn (n-1) c
 
 alMenosNTesoros :: Int -> Camino -> Bool
 -- Indica si hay al menos n tesoros en el camino.
-alMenosNTesoros n c = cantTesorosEn c >= n
+alMenosNTesoros 0 c              = True
+alMenosNTesoros _ Fin            = False
+alMenosNTesoros n (Nada c)       = alMenosNTesoros n c 
+alMenosNTesoros n (Cofre objs c) = if cantidadTesoros objs >= n 
+                                    then True 
+                                    else alMenosNTesoros (n-(cantidadTesoros objs)) c
 
 cantTesorosEn :: Camino -> Int
 -- Retorna la cantidad de tesoros que hay en el camino.
@@ -106,21 +115,11 @@ cantTesorosEntre :: Int -> Int -> Camino -> Int
 {- Dado un rango de pasos, indica la cantidad de tesoros que hay en ese rango. Por ejemplo, si el rango es 3 y 5, 
    indica la cantidad de tesoros que hay entre hacer 3 pasos y hacer 5. Están incluidos tanto 3 como 5 en el resultado.
 -}
-cantTesorosEntre x y c = cantDeTesorosDesde x (caminoDeTesorosHasta y c)
-
-caminoDeTesorosHasta :: Int -> Camino -> Camino
-caminoDeTesorosHasta 0 c              = Fin
-caminoDeTesorosHasta n Fin            = Fin
-caminoDeTesorosHasta n (Cofre objs c) = Cofre objs (caminoDeTesorosHasta (n-1) c)
-caminoDeTesorosHasta n (Nada c)       = Nada (caminoDeTesorosHasta (n-1) c)
-
-cantDeTesorosDesde :: Int -> Camino -> Int
-cantDeTesorosDesde 0 c              = cantTesorosEn c
-cantDeTesorosDesde n Fin            = 0
-cantDeTesorosDesde n (Nada c)       = cantDeTesorosDesde (n-1) c
-cantDeTesorosDesde n (Cofre objs c) = if n==0
-                                        then cantTesorosEn c
-                                        else cantDeTesorosDesde (n-1) c
+cantTesorosEntre _ _ Fin              = 0
+cantTesorosEntre n1 n2 (Nada c)       = cantTesorosEntre (n1-1) (n2-1) c
+cantTesorosEntre n1 n2 (Cofre objs c) = if (n1<=0 && n2/=0)
+                                         then cantidadTesoros objs + cantTesorosEntre (n1-1) (n2-1) c
+                                         else cantTesorosEntre (n1-1) (n2-1) c
 -- 2. Tipos arboreos
 -- 2.1 Arboles Binarios
 
@@ -174,18 +173,19 @@ aparicionesT a (NodeT a2 t1 t2) = unoSi (pertenece a a2) + aparicionesT a t1 + a
 --6.
 leaves :: Tree a -> [a]
 -- Dado un árbol devuelve los elementos que se encuentran en sus hojas.
-leaves EmptyT          = []
-leaves (NodeT a t1 t2) = a : leaves t1 ++ leaves t2
+leaves EmptyT = []  
+leaves (NodeT a EmptyT EmptyT) = [a] 
+leaves (NodeT a left right) = leaves left ++ leaves right
 --7.
 heightT :: Tree a -> Int
 -- Dado un árbol devuelve su altura. Nota: la altura de un árbol (height en inglés), también llamada profundidad, es la cantidad de niveles del árbol1 La altura para EmptyT es 0, y para una hoja es 1
 heightT EmptyT = 0 
-heightT (NodeT a t1 t2) = 1 + heightT t1 + heightT t2
+heightT (NodeT _ left right) = 1 + max (heightT left) (heightT right)
 --8. 
 mirrorT :: Tree a -> Tree a
 -- Dado un árbol devuelve el árbol resultante de intercambiar el hijo izquierdo con el derecho, en cada nodo del árbol.
-mirrorT EmptyT = EmptyT
-mirrorT (NodeT a t1 t2) = (NodeT a t2 t1)
+mirrorT EmptyT = EmptyT 
+mirrorT (NodeT x left right) = NodeT x (mirrorT right) (mirrorT left)
 --9.
 toList :: Tree a -> [a]
 -- Dado un árbol devuelve una lista que representa el resultado de recorrerlo en modo in-order. Nota: En el modo in-order primero se procesan los elementos del hijo izquierdo, luego la raiz y luego los elementos del hijo derecho.
@@ -202,22 +202,13 @@ levelN n (NodeT x t1 t2) = levelN (n-1) t1 ++ levelN (n-1) t2
 --11.
 listPerLevel :: Tree a -> [[a]]
 -- Dado un árbol devuelve una lista de listas en la que cada elemento representa un nivel de dicho árbol.
-listPerLevel EmptyT = []
-listPerLevel t = listPerLevelOn t ((levelsOnT t) - 1)
+listPerLevel EmptyT          = []
+listPerLevel (NodeT a t1 t2) = [a] : juntarNiveles (listPerLevel t1) (listPerLevel t2)
 
-listPerLevelOn :: Tree a -> Int -> [[a]]
--- Dado un arbol y un numero devuelve una lista de listas de los nodos n en la que cada elemento representa un nivel de dicho arbol.
-listPerLevelOn EmptyT n = []
-listPerLevelOn (NodeT a _ _) 0 = [[a]]
-listPerLevelOn t n = if n < 0 
-                        then []
-                        else levelN n t : listPerLevelOn t (n-1)
-
-levelsOnT :: Tree a -> Int
--- Dado un arbol retorna la cantidad de niveles que posee. 
-levelsOnT EmptyT = 0 
-levelsOnT (NodeT _ t1 t2) = 1 + max (levelsOnT t1) (levelsOnT t2) 
-
+juntarNiveles:: [[a]] -> [[a]] -> [[a]]
+juntarNiveles [] yss            = yss
+juntarNiveles xss []            = xss
+juntarNiveles (xs:xss) (ys:yss) = (xs ++ ys) : juntarNiveles xss yss
 --12.
 ramaMasLarga :: Tree a -> [a]
 -- Devuelve los elementos de la rama más larga del árbol. Si ambas ramas tienen el mismo tamaño elige la rama izquierda
