@@ -475,51 +475,51 @@ exploradoresPorTerritorio :: Manada -> [(Territorio, [Nombre])]
 {- Propósito: dada una manada, denota la lista de los pares cuyo primer elemento es un territorio y cuyo segundo elemento es la lista de los nombres de los exploradores que exploraron
    dicho territorio. Los territorios no deben repetirse.
 -}
-exploradoresPorTerritorio (M l) = exploradoresPorTerritorioL l
+exploradoresPorTerritorio m = exploradoresPorTerritorioDeLista (territoriosM m) m
 
-exploradoresPorTerritorioL :: Lobo -> [(Territorio, [Nombre])]
-{- Propósito: dada un lobo, denota la lista de los pares cuyo primer elemento es un territorio y cuyo segundo elemento es la lista de los nombres de los exploradores que exploraron
-   dicho territorio. Los territorios no deben repetirse.
--}
-exploradoresPorTerritorioL (Cria _) = []
-exploradoresPorTerritorioL (Cazador _ _ l1 l2 l3)  = exploradoresPorTerritorioL l1 ++ exploradoresPorTerritorioL l2 ++ exploradoresPorTerritorioL l3 
-exploradoresPorTerritorioL (Explorador n ts l1 l2) = tuplaPorCada ts n (exploradoresPorTerritorioL l1)
+territoriosM :: Manada -> [Territorio]
+territoriosM (M l) = sinTerritoriosRepetidos(todosLosTerritoriosDe l)
 
-tuplaPorCada :: [Territorio] -> Nombre -> [(Territorio, [Nombre])] -> [(Territorio, [Nombre])]
-tuplaPorCada [] _ tsns     = tsns
-tuplaPorCada (t:ts) n tsns = agregarATupla t n (tuplaPorCada ts n tsns)
+exploradoresPorTerritorioDeLista :: [Territorio] -> Manada -> [(Territorio, [Nombre])]
+exploradoresPorTerritorioDeLista [] m     = []
+exploradoresPorTerritorioDeLista (t:ts) m = (t, losQueExploraron t m) : exploradoresPorTerritorioDeLista ts m
 
-agregarATupla :: Territorio -> Nombre -> [(Territorio, [Nombre])] -> [(Territorio, [Nombre])]
-agregarATupla t n []              = (t,[n]) : [] 
-agregarATupla t1 n ((t2,ns):tsns) = if t1 == t2 
-                                     then (t2,(n:ns)) : tsns
-                                     else (t2,ns) : agregarATupla t1 n tsns
+todosLosTerritoriosDe :: Lobo -> [Territorio]
+todosLosTerritoriosDe (Cazador n ps l1 l2 l3) = todosLosTerritoriosDe l1 ++ 
+                                                todosLosTerritoriosDe l2 ++ 
+                                                todosLosTerritoriosDe l3
 
---6. 
-superioresDelCazador :: Nombre -> Manada -> [Nombre]
+todosLosTerritoriosDe (Explorador n ts l1 l2) = ts ++ todosLosTerritoriosDe l1 
+                                                ++ todosLosTerritoriosDe l2
+
+todosLosTerritoriosDe (Cria n)                = []
+
+
+sinTerritoriosRepetidos :: [Territorio] -> [Territorio]
+sinTerritoriosRepetidos []     = []
+sinTerritoriosRepetidos (t:ts) = if estaTerritorioEn t ts
+                                 then sinTerritoriosRepetidos ts
+                                 else t : sinTerritoriosRepetidos ts
+
+estaTerritorioEn :: Territorio -> [Territorio] -> Bool
+estaTerritorioEn t []       = False
+estaTerritorioEn t (tr:trs) = esMismoTerritorio t tr || estaTerritorioEn t trs
+
+esMismoTerritorio :: Territorio -> Territorio -> Bool
+esMismoTerritorio t1 t2 = t1 == t2
+
+-- 6
 -- Propósito: dado un nombre de cazador y una manada, indica el nombre de todos los cazadores que tienen como subordinado al cazador dado (directa o indirectamente).
 -- Precondición: hay un cazador con dicho nombre y es único.
-superioresDelCazador n (M l) = superioresDelCazadorL n l 
+superioresDelCazador :: Nombre -> Manada -> [Nombre]
+superioresDelCazador n (M l) = losSuperioresAlCazadorDe n l
 
-superioresDelCazadorL :: Nombre -> Lobo -> [Nombre]
-superioresDelCazadorL n (Cria _)  = [] 
-superioresDelCazadorL n (Explorador n1 _ l1 l2) = if esSuperiorA n l1 || esSuperiorA n l2
-                                                    then n1 : superioresDelCazadorL n l1 ++ superioresDelCazadorL n l2
-                                                    else superioresDelCazadorL n l1 ++ superioresDelCazadorL n l2
-superioresDelCazadorL n (Cazador n1 _ l1 l2 l3) = if esSuperiorA n l1 || esSuperiorA n l2 || esSuperiorA n l3
-                                                    then n1 : superioresDelCazadorL n l1 ++ superioresDelCazadorL n l2 ++ superioresDelCazadorL n l3
-                                                    else superioresDelCazadorL n l1 ++ superioresDelCazadorL n l2 ++ superioresDelCazadorL n l3
-
-esSuperiorA :: Nombre -> Lobo -> Bool
-esSuperiorA _ (Cria _)               = False
-esSuperiorA n (Explorador _ _ l1 l2) = existeEn' n l1 || existeEn' n l2
-esSuperiorA n (Cazador _ _ l1 l2 l3) = existeEn' n l1 || existeEn' n l2 || existeEn' n l3
-
-existeEn':: Nombre -> Lobo -> Bool
-existeEn' _ (Cria _) = False
-existeEn' n1 (Explorador n2 _ l1 l2) = if n1 == n2 
-                                        then True
-                                        else False || existeEn' n1 l1 || existeEn' n1 l2
-existeEn' n1 (Cazador n2 _ l1 l2 l3) = if n1 == n2 
-                                        then True
-                                        else False || existeEn' n1 l1 || existeEn' n1 l2 || existeEn' n1 l3
+losSuperioresAlCazadorDe :: Nombre -> Lobo -> [Nombre]
+losSuperioresAlCazadorDe nombre (Cria n)                = []
+losSuperioresAlCazadorDe nombre (Cazador n ps l1 l2 l3) = if nombre == n
+                                                          then []
+                                                          else  n :
+                                                          (losSuperioresAlCazadorDe nombre l1) ++
+                                                          (losSuperioresAlCazadorDe nombre l2) ++
+                                                          (losSuperioresAlCazadorDe nombre l3)
+losSuperioresAlCazadorDe nombre (Explorador n ts l1 l2) = (losSuperioresAlCazadorDe nombre l1) ++ (losSuperioresAlCazadorDe nombre l2)
