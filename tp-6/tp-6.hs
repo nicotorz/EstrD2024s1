@@ -1,5 +1,8 @@
 import PriorityQueue
 import Map
+
+type Jugador = String
+type Nombre  = String
 -- PRIORITY QUEUE 
 
 heapSort :: Ord a => [a] -> [a]
@@ -96,8 +99,4 @@ incrementar (k:ks) map =
     case lookupM k map of
         Nothing -> incrementar ks map
         Just n  -> incrementar ks (assocM k (n + 1) (deleteM k map))
-
-mergeMaps:: Eq k => Map k v -> Map k v -> Map k v
---Propósito: dado dos maps se agregan las claves y valores del primer map en el segundo. Si una clave del primero existe en el segundo, es reemplazada por la del primero
-
 

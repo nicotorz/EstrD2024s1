@@ -1,5 +1,5 @@
 module Map
-    (Map, emptyM, assocM, lookupM, deleteM, keys)
+    (Map, emptyM, assocM, lookupM, deleteM, keys, unionM)
     where
 data Map k v = Map [(k, v)]
     deriving Show
@@ -63,3 +63,15 @@ asociar k v []            = [ (k,v) ]
 asociar k v ((k',v'):kvs) = if k == k' 
                                 then (k',v) : kvs
                                 else (k',v') : asociar k v kvs 
+
+unionM :: Eq k => Map k v -> Map k v -> Map k v
+-- Propósito: combina dos mapas, sobrescribiendo las asociaciones del primer mapa con las del segundo mapa en caso de claves duplicadas.
+unionM (Map kvs1) (Map kvs2) = Map (unionMapas kvs1 kvs2)
+
+unionMapas :: Eq k => [(k,v)] -> [(k,v)] -> [(k,v)]
+-- Propósito: combina dos listas de pares clave-valor, sobrescribiendo las asociaciones del primer mapa con las del segundo mapa en caso de claves duplicadas.
+unionMapas [] kvs2 = kvs2
+unionMapas ((k,v):kvs1) kvs2 =
+    case lookup k kvs2 of
+        Nothing -> (k,v) : unionMapas kvs1 kvs2
+        Just v2 -> (k,v2) : unionMapas kvs1 (borrar k kvs2)

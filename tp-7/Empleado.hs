@@ -118,4 +118,3 @@ borrarEmpleado :: CUIL -> Empresa -> Empresa
 -- Propósito: elimina al empleado que posee dicho CUIL.
 -- Costo: calcular
 
-
